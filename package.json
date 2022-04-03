@@ -1,0 +1,28 @@
+{
+  "name": "functional-tables",
+  "version": "1.0.0",
+  "description": "HTML tables from functional programming",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "format": "prettier \"**/*.{cjs,html,js,json,md,ts}\" --write"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/annolangen/functional-tables.git"
+  },
+  "author": "",
+  "license": "BSD",
+  "bugs": {
+    "url": "https://github.com/annolangen/functional-tables/issues"
+  },
+  "homepage": "https://github.com/annolangen/functional-tables#readme",
+  "devDependencies": {
+    "parcel": "^2.4.1",
+    "prettier": "^2.6.2",
+    "typescript": "^4.6.3"
+  },
+  "dependencies": {
+    "lit": "^2.2.1"
+  }
+}
