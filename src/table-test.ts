@@ -36,7 +36,7 @@ const renderPage = () =>
         ['Test Header'],
         div,
         (div.value || {}).scrollTop || 0,
-        20,
+        35.4,
         source
       )}
     </div>`,

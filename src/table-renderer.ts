@@ -18,8 +18,8 @@ export interface ClassNameOptions {
   cell?: (content: any, header_name: string) => string | undefined;
 }
 
-const rows_per_block = 50;
-const blocks_per_cluster = 3;
+const rows_per_block = 20;
+const blocks_per_cluster = 4;
 const cluster_size = rows_per_block * blocks_per_cluster;
 
 function debounce(f: Function, timeout = 50) {
@@ -42,7 +42,7 @@ export function RenderTable(
 ): HTMLTemplateResult {
   const blockCountAbove = Math.max(
     0,
-    Math.floor(scrollTop / itemHeight / rows_per_block) - 1
+    Math.floor(scrollTop / itemHeight / rows_per_block) - 2
   );
   const offset = rows_per_block * blockCountAbove;
   const rowCountBelow = Math.max(0, rows.row_count - offset - cluster_size);
@@ -52,7 +52,7 @@ export function RenderTable(
         verticalScrollDiv.value.children[0].children[0].children[2]
       )
     : defaultWidths;
-  if (verticalScrollDiv.value) verticalScrollDiv.value.scrollTop = scrollTop;
+  //if (verticalScrollDiv.value) verticalScrollDiv.value.scrollTop = scrollTop;
   return html`
     <div style="overflow:auto">
       <div style="overflow:hidden">
@@ -68,7 +68,7 @@ export function RenderTable(
       </div>
       <div
         style="max-height:${maxHeight}px;overflow:auto"
-        @scroll="${renderPage}}"
+        @scroll=${renderPage}
         ${ref(verticalScrollDiv)}
       >
         <table class="${classNames.table || ''}">
