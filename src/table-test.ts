@@ -43,7 +43,7 @@ const renderPage = () =>
     html`<div style="width:80%;margin:auto">
       ${RenderTable(
         debouncedRenderPage,
-        {table: 'pure-table pure-table-bordered'},
+        {table: 'pure-table pure-table-bordered pure-table-striped'},
         300,
         ['Test Header'],
         div,
