@@ -22,14 +22,6 @@ const rows_per_block = 20;
 const blocks_per_cluster = 4;
 const cluster_size = rows_per_block * blocks_per_cluster;
 
-function debounce(f: Function, timeout = 50) {
-  let timer: number;
-  return (...args: any) => {
-    clearTimeout(timer);
-    timer = setTimeout(() => f.apply(this, args));
-  };
-}
-
 export function RenderTable(
   renderPage: () => void,
   classNames: ClassNameOptions,
@@ -52,7 +44,27 @@ export function RenderTable(
         verticalScrollDiv.value.children[0].children[0].children[2]
       )
     : defaultWidths;
-  //if (verticalScrollDiv.value) verticalScrollDiv.value.scrollTop = scrollTop;
+  if (verticalScrollDiv.value) {
+    setTimeout(() => {
+      verticalScrollDiv.value.scrollTop = scrollTop;
+    }, 0);
+  }
+  const childHeight = ((e) =>
+    (e && (e.children[0] as HTMLElement).offsetHeight) || 0)(
+    verticalScrollDiv.value
+  );
+  console.log(
+    'scroll %: ' +
+      ((e) => (e && (e.scrollTop / childHeight).toFixed(2)) || 0)(
+        verticalScrollDiv.value
+      ) +
+      ' scrollTop: ' +
+      ((verticalScrollDiv.value || {}).scrollTop || 0) +
+      ' height: ' +
+      ((verticalScrollDiv.value || {}).offsetHeight || 0) +
+      ' child height: ' +
+      childHeight
+  );
   return html`
     <div style="overflow:auto">
       <div style="overflow:hidden">

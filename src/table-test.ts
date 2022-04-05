@@ -24,13 +24,25 @@ function newRangeRowElementSource(row_count: number): RowElementSource {
   };
 }
 
-const source = newRangeRowElementSource(1000);
+function debounce(f: Function, timeout = 50) {
+  let timer: number;
+  return (...args: any[]) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      f.apply(this, args);
+    }, timeout);
+  };
+}
+
+const source = newRangeRowElementSource(10000);
+
+var debouncedRenderPage: () => void;
 
 const renderPage = () =>
   render(
     html`<div style="width:80%;margin:auto">
       ${RenderTable(
-        renderPage,
+        debouncedRenderPage,
         {table: 'pure-table pure-table-bordered'},
         300,
         ['Test Header'],
@@ -42,5 +54,9 @@ const renderPage = () =>
     </div>`,
     document.body
   );
-window.onload = renderPage;
+debouncedRenderPage = debounce(renderPage);
+window.onload = () => {
+  renderPage(); // use estimates and Ref with undefined value
+  renderPage();
+};
 window.onclick = renderPage;
