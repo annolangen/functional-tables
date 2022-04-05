@@ -1,6 +1,6 @@
 import type {HTMLTemplateResult} from 'lit-html';
 import {html} from 'lit-html';
-import {Ref, ref} from 'lit/directives/ref.js';
+import {createRef, Ref, ref} from 'lit/directives/ref.js';
 
 export interface RowElementSourceParams {
   offset: number;
@@ -16,6 +16,70 @@ export interface ClassNameOptions {
   table_container?: string;
   table?: string;
   cell?: (content: any, header_name: string) => string | undefined;
+}
+
+export interface TableRenderer {
+  render(): Promise<HTMLTemplateResult>;
+  setScrollPercent(percent: number): void;
+  setHeaders(header_names: string[]): void;
+  setRows(rows: RowElementSource): void;
+}
+
+export function newTableRenderer(
+  onChange: () => void,
+  classNames: ClassNameOptions,
+  maxHeight: number = 200
+): TableRenderer {
+  const verticalScrollDiv: Ref<HTMLDivElement> = createRef();
+  const debouncedOnChange = debounce(onChange);
+  const renderTableForScrollAndHeight = async (
+    scrollTop: number,
+    itemHeight: number
+  ) =>
+    RenderTable(
+      debouncedOnChange,
+      classNames,
+      maxHeight,
+      headerNames,
+      verticalScrollDiv,
+      scrollTop,
+      itemHeight,
+      rows
+    );
+  var rows: RowElementSource;
+  var headerNames: string[];
+  return {
+    render: () => renderTableForDiv(verticalScrollDiv.value),
+    setScrollPercent(percent: number) {
+      /*TODO*/
+    },
+    setHeaders(newNames: string[]) {
+      headerNames = newNames;
+    },
+    setRows(newRows: RowElementSource) {
+      rows = newRows;
+    },
+  };
+
+  async function renderTableForDiv(div?: HTMLDivElement) {
+    if (!rows || !headerNames) return html``;
+    return div
+      ? renderTableForScrollAndHeight(
+          div.scrollTop,
+          (div.children[0] as HTMLElement).offsetHeight / rows.row_count
+        )
+      : renderTableForScrollAndHeight(0, 20);
+  }
+}
+
+function debounce(f: Function, timeout = 50) {
+  let timer: number;
+  return (...args: any[]) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      f.apply(this, args);
+    }, timeout);
+  };
 }
 
 const rows_per_block = 20;
@@ -72,7 +136,10 @@ export async function RenderTable(
           <thead>
             <tr>
               ${header_names.map(
-                (h, i) => html`<th style="width:${columnWidth(i)}">${h}</th>`
+                (h, i) =>
+                  html`<th style="width:${columnWidth(i)};white-space:normal">
+                    ${h}
+                  </th>`
               )}
             </tr>
           </thead>

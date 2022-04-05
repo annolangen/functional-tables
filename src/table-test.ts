@@ -43,7 +43,7 @@ const renderPage = async () =>
     html`<div style="width:80%;margin:auto">
       ${await RenderTable(
         debouncedRenderPage,
-        {table: 'pure-table pure-table-bordered pure-table-striped'},
+        {table: 'mdl-data-table mdl-js-data-table mdl-shadow--2dp'},
         300,
         ['Test Header'],
         div,
