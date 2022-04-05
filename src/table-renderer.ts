@@ -9,7 +9,7 @@ export interface RowElementSourceParams {
 
 export interface RowElementSource {
   row_count: number;
-  getBlock(params: RowElementSourceParams): HTMLTemplateResult[];
+  getBlock(params: RowElementSourceParams): Promise<HTMLTemplateResult[]>;
 }
 
 export interface ClassNameOptions {
@@ -22,7 +22,7 @@ const rows_per_block = 20;
 const blocks_per_cluster = 4;
 const cluster_size = rows_per_block * blocks_per_cluster;
 
-export function RenderTable(
+export async function RenderTable(
   renderPage: () => void,
   classNames: ClassNameOptions,
   maxHeight: number,
@@ -31,7 +31,7 @@ export function RenderTable(
   scrollTop: number,
   itemHeight: number,
   rows: RowElementSource
-): HTMLTemplateResult {
+): Promise<HTMLTemplateResult> {
   const blockCountAbove = Math.max(
     0,
     Math.floor(scrollTop / itemHeight / rows_per_block) - 2
@@ -86,7 +86,7 @@ export function RenderTable(
         <table class="${classNames.table || ''}">
           <tr style="height:${itemHeight * offset}px"></tr>
           <tr style="display:none"></tr>
-          ${rows.getBlock({offset, limit: cluster_size})}
+          ${await rows.getBlock({offset, limit: cluster_size})}
           <tr style="height:${itemHeight * rowCountBelow}px"></tr>
         </table>
       </div>

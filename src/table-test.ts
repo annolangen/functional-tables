@@ -11,7 +11,7 @@ const div: Ref<HTMLDivElement> = createRef();
 function newRangeRowElementSource(row_count: number): RowElementSource {
   return {
     row_count,
-    getBlock(params: RowElementSourceParams) {
+    async getBlock(params: RowElementSourceParams) {
       return Array(Math.min(params.limit, row_count - params.offset))
         .fill(0)
         .map(
@@ -38,10 +38,10 @@ const source = newRangeRowElementSource(10000);
 
 var debouncedRenderPage: () => void;
 
-const renderPage = () =>
+const renderPage = async () =>
   render(
     html`<div style="width:80%;margin:auto">
-      ${RenderTable(
+      ${await RenderTable(
         debouncedRenderPage,
         {table: 'pure-table pure-table-bordered pure-table-striped'},
         300,
@@ -55,8 +55,8 @@ const renderPage = () =>
     document.body
   );
 debouncedRenderPage = debounce(renderPage);
-window.onload = () => {
-  renderPage(); // use estimates and Ref with undefined value
+window.onload = async () => {
+  await renderPage(); // use estimates and Ref with undefined value
   renderPage();
 };
 window.onclick = renderPage;
