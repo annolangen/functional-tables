@@ -25,33 +25,31 @@ export interface TableRenderer {
   setRows(rows: RowElementSource): void;
 }
 
+const rows_per_block = 20;
+const blocks_per_cluster = 4;
+const cluster_size = rows_per_block * blocks_per_cluster;
+
+var next_default_id = 0;
+
 export function newTableRenderer(
   onChange: () => void,
   classNames: ClassNameOptions,
-  maxHeight: number = 200
+  idPrefix = undefined
 ): TableRenderer {
-  const verticalScrollDiv: Ref<HTMLDivElement> = createRef();
+  idPrefix = idPrefix || 'generated-id-' + ++next_default_id;
+  const scrollDivRef: Ref<HTMLDivElement> = createRef();
   const debouncedOnChange = debounce(onChange);
-  const renderTableForScrollAndHeight = async (
-    scrollTop: number,
-    itemHeight: number
-  ) =>
-    RenderTable(
-      debouncedOnChange,
-      classNames,
-      maxHeight,
-      headerNames,
-      verticalScrollDiv,
-      scrollTop,
-      itemHeight,
-      rows
-    );
   var rows: RowElementSource;
   var headerNames: string[];
   return {
-    render: () => renderTableForDiv(verticalScrollDiv.value),
+    render: () => renderTableForScrollDiv(scrollDivRef.value),
     setScrollPercent(percent: number) {
-      /*TODO*/
+      ((d) => {
+        if (d) {
+          d.scrollTop =
+            ((d.children[0] as HTMLElement).offsetHeight * percent) / 100;
+        }
+      })(scrollDivRef.value);
     },
     setHeaders(newNames: string[]) {
       headerNames = newNames;
@@ -61,14 +59,82 @@ export function newTableRenderer(
     },
   };
 
-  async function renderTableForDiv(div?: HTMLDivElement) {
+  async function renderTableForScrollDiv(scrollDiv?: HTMLDivElement) {
     if (!rows || !headerNames) return html``;
-    return div
-      ? renderTableForScrollAndHeight(
-          div.scrollTop,
-          (div.children[0] as HTMLElement).offsetHeight / rows.row_count
+    return scrollDiv
+      ? renderTableForScrollAndDataRow(
+          scrollDiv.scrollTop,
+          scrollDiv.children[0].children[0].children[2] as HTMLTableRowElement
         )
-      : renderTableForScrollAndHeight(0, 20);
+      : renderTableForScrollAndDataRow(0, undefined);
+
+    async function renderTableForScrollAndDataRow(
+      scrollTop: number,
+      dataRow?: HTMLTableRowElement
+    ) {
+      const rowHeight = dataRow ? dataRow.offsetHeight : 20;
+      const blockCountAbove = Math.max(
+        0,
+        Math.floor(scrollTop / rowHeight / rows_per_block) - 2
+      );
+      const offset = blockCountAbove * rows_per_block;
+      const rowCountBelow = Math.max(0, rows.row_count - offset - cluster_size);
+      const columnWidth = dataRow
+        ? bodyColumnWidths(dataRow)
+        : (i: number) => '20px';
+      const rowTemplateResults: HTMLTemplateResult[] = await rows.getBlock({
+        offset,
+        limit: cluster_size,
+      });
+      if (scrollDiv) {
+        setTimeout(() => {
+          scrollDiv.scrollTop = scrollTop;
+        }, 0);
+      }
+      return html`
+        <style>
+          .data-table-container {
+            max-height: 200px;
+          }
+        </style>
+        <div style="overflow:auto">
+          <div style="overflow:hidden">
+            <table style="margin-bottom:0" class="${classNames.table || ''}">
+              <thead>
+                <tr>
+                  ${headerNames.map(
+                    (h, i) =>
+                      html`<th
+                        style="width:${columnWidth(i)};white-space:normal"
+                      >
+                        ${h}
+                      </th>`
+                  )}
+                </tr>
+              </thead>
+            </table>
+          </div>
+          <div
+            id="${idPrefix}-data-table-container"
+            class="data-table-container"
+            style="overflow:auto"
+            @scroll=${debouncedOnChange}
+            ${ref(scrollDivRef)}
+          >
+            <table class="${classNames.table || ''}">
+              <tr style="height:${rowHeight * offset}px"></tr>
+              <tr style="display:none"></tr>
+              ${rowTemplateResults}
+              <tr style="height:${rowHeight * rowCountBelow}px"></tr>
+            </table>
+          </div>
+        </div>
+      `;
+
+      function bodyColumnWidths(row: Element) {
+        return (i: number) => getComputedStyle(row.children[i]).width;
+      }
+    }
   }
 }
 
@@ -80,87 +146,4 @@ function debounce(f: Function, timeout = 50) {
       f.apply(this, args);
     }, timeout);
   };
-}
-
-const rows_per_block = 20;
-const blocks_per_cluster = 4;
-const cluster_size = rows_per_block * blocks_per_cluster;
-
-export async function RenderTable(
-  renderPage: () => void,
-  classNames: ClassNameOptions,
-  maxHeight: number,
-  header_names: string[],
-  verticalScrollDiv: Ref<HTMLDivElement>,
-  scrollTop: number,
-  itemHeight: number,
-  rows: RowElementSource
-): Promise<HTMLTemplateResult> {
-  const blockCountAbove = Math.max(
-    0,
-    Math.floor(scrollTop / itemHeight / rows_per_block) - 2
-  );
-  const offset = rows_per_block * blockCountAbove;
-  const rowCountBelow = Math.max(0, rows.row_count - offset - cluster_size);
-  const defaultWidths = (i: number) => '20px';
-  const columnWidth = verticalScrollDiv.value
-    ? bodyColumnWidths(
-        verticalScrollDiv.value.children[0].children[0].children[2]
-      )
-    : defaultWidths;
-  if (verticalScrollDiv.value) {
-    setTimeout(() => {
-      verticalScrollDiv.value.scrollTop = scrollTop;
-    }, 0);
-  }
-  const childHeight = ((e) =>
-    (e && (e.children[0] as HTMLElement).offsetHeight) || 0)(
-    verticalScrollDiv.value
-  );
-  console.log(
-    'scroll %: ' +
-      ((e) => (e && (e.scrollTop / childHeight).toFixed(2)) || 0)(
-        verticalScrollDiv.value
-      ) +
-      ' scrollTop: ' +
-      ((verticalScrollDiv.value || {}).scrollTop || 0) +
-      ' height: ' +
-      ((verticalScrollDiv.value || {}).offsetHeight || 0) +
-      ' child height: ' +
-      childHeight
-  );
-  return html`
-    <div style="overflow:auto">
-      <div style="overflow:hidden">
-        <table style="margin-bottom:0" class="${classNames.table || ''}">
-          <thead>
-            <tr>
-              ${header_names.map(
-                (h, i) =>
-                  html`<th style="width:${columnWidth(i)};white-space:normal">
-                    ${h}
-                  </th>`
-              )}
-            </tr>
-          </thead>
-        </table>
-      </div>
-      <div
-        style="max-height:${maxHeight}px;overflow:auto"
-        @scroll=${renderPage}
-        ${ref(verticalScrollDiv)}
-      >
-        <table class="${classNames.table || ''}">
-          <tr style="height:${itemHeight * offset}px"></tr>
-          <tr style="display:none"></tr>
-          ${await rows.getBlock({offset, limit: cluster_size})}
-          <tr style="height:${itemHeight * rowCountBelow}px"></tr>
-        </table>
-      </div>
-    </div>
-  `;
-
-  function bodyColumnWidths(row: Element) {
-    return (i: number) => getComputedStyle(row.children[i]).width;
-  }
 }
