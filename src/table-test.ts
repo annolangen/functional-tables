@@ -19,7 +19,7 @@ function newRangeRowElementSource(row_count: number): RowElementSource {
         .map(
           (_, i) =>
             html`<tr>
-              <td>Test Row ${params.offset + i}</td>
+              <td>Row ${params.offset + i}</td>
             </tr>`
         );
     },
