@@ -8,7 +8,7 @@ export interface RowElementSourceParams {
 }
 
 export interface RowElementSource {
-  row_count: number;
+  readonly row_count: number;
   getBlock(params: RowElementSourceParams): Promise<HTMLTemplateResult[]>;
 }
 
@@ -25,7 +25,7 @@ export interface TableRenderer {
   setRows(rows: RowElementSource): void;
 }
 
-const rows_per_block = 20;
+const rows_per_block = 50;
 const blocks_per_cluster = 4;
 const cluster_size = rows_per_block * blocks_per_cluster;
 
@@ -79,8 +79,8 @@ export function newTableRenderer(
       );
       const offset = blockCountAbove * rows_per_block;
       const rowCountBelow = Math.max(0, rows.row_count - offset - cluster_size);
-      const columnWidth = dataRow
-        ? bodyColumnWidths(dataRow)
+      const columnWidth = scrollDiv
+        ? collapsedColumnWidths(scrollDiv.children[0].children[0].children[0])
         : (i: number) => '20px';
       const rowTemplateResults: HTMLTemplateResult[] = await rows.getBlock({
         offset,
@@ -104,11 +104,7 @@ export function newTableRenderer(
                 <tr>
                   ${headerNames.map(
                     (h, i) =>
-                      html`<th
-                        style="width:${columnWidth(i)};white-space:normal"
-                      >
-                        ${h}
-                      </th>`
+                      html`<th style="width:${columnWidth(i)}">${h}</th>`
                   )}
                 </tr>
               </thead>
@@ -122,8 +118,10 @@ export function newTableRenderer(
             ${ref(scrollDivRef)}
           >
             <table class="${classNames.table || ''}">
+              <tr style="visibility:collapse">
+                ${headerNames.map((h, i) => html`<th>${h}</th>`)}
+              </tr>
               <tr style="height:${rowHeight * offset}px"></tr>
-              <tr style="display:none"></tr>
               ${rowTemplateResults}
               <tr style="height:${rowHeight * rowCountBelow}px"></tr>
             </table>
@@ -131,7 +129,7 @@ export function newTableRenderer(
         </div>
       `;
 
-      function bodyColumnWidths(row: Element) {
+      function collapsedColumnWidths(row: Element) {
         return (i: number) => getComputedStyle(row.children[i]).width;
       }
     }

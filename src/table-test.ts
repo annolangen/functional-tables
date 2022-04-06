@@ -1,5 +1,6 @@
 import {render, html} from 'lit-html';
 import {createRef, Ref} from 'lit-html/directives/ref';
+import {asRowElementSource, loadCsvTable} from './csv-table';
 import {
   ClassNameOptions,
   newTableRenderer,
@@ -7,8 +8,6 @@ import {
   RowElementSourceParams,
   TableRenderer,
 } from './table-renderer';
-
-const div: Ref<HTMLDivElement> = createRef();
 
 function newRangeRowElementSource(row_count: number): RowElementSource {
   return {
@@ -26,6 +25,9 @@ function newRangeRowElementSource(row_count: number): RowElementSource {
   };
 }
 
+const url =
+  'https://raw.githubusercontent.com/nytimes/covid-19-data/master/live/us-counties.csv';
+const futureTable = loadCsvTable(url);
 const classNames: ClassNameOptions = {
   table: 'mdl-data-table mdl-js-data-table mdl-shadow--2dp',
 };
@@ -41,10 +43,11 @@ const renderPage = async () =>
     document.body
   );
 tableRenderer = newTableRenderer(renderPage, classNames, 'test');
-tableRenderer.setRows(newRangeRowElementSource(10000));
-tableRenderer.setHeaders(['Test Header']);
 
 window.onload = async () => {
+  const table = await futureTable;
+  tableRenderer.setHeaders(table.headers.map((h) => h.replace(/_/g, ' ')));
+  tableRenderer.setRows(asRowElementSource(table));
   await renderPage(); // use estimates and Ref with undefined value
   renderPage();
 };
