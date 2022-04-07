@@ -104,23 +104,20 @@ export function newTableRenderer(
             max-height: 200px;
           }
         </style>
-        <div style="overflow:auto">
-          <div style="overflow:hidden">
-            <table style="margin-bottom:0" class="${classNames.table || ''}">
-              <thead>
-                <tr>
-                  ${headerNames.map(
-                    (h, i) =>
-                      html`<th style="width:${columnWidth(i)}">${h}</th>`
-                  )}
-                </tr>
-              </thead>
-            </table>
-          </div>
+        <div style="overflow-x:auto;width:100%">
+          <table style="margin-bottom:0" class="${classNames.table || ''}">
+            <thead>
+              <tr>
+                ${headerNames.map(
+                  (h, i) => html`<th style="width:${columnWidth(i)}">${h}</th>`
+                )}
+              </tr>
+            </thead>
+          </table>
           <div
             id="${idPrefix}-data-table-container"
             class="data-table-container"
-            style="overflow:auto"
+            style="overflow-y:auto;width:fit-content"
             @scroll=${debouncedOnChange}
             ${ref(scrollDivRef)}
           >
