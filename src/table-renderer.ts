@@ -1,6 +1,7 @@
 import type {HTMLTemplateResult} from 'lit-html';
 import {html} from 'lit-html';
-import {createRef, Ref, ref} from 'lit/directives/ref.js';
+import {createRef, Ref, ref} from 'lit-html/directives/ref';
+import {debounce, lruMemoize} from './util';
 
 export interface RowElementSourceParams {
   offset: number;
@@ -25,7 +26,7 @@ export interface TableRenderer {
   setRows(rows: RowElementSource): void;
 }
 
-const rows_per_block = 50;
+const rows_per_block = 32;
 const blocks_per_cluster = 4;
 const cluster_size = rows_per_block * blocks_per_cluster;
 
@@ -40,6 +41,7 @@ export function newTableRenderer(
   const scrollDivRef: Ref<HTMLDivElement> = createRef();
   const debouncedOnChange = debounce(onChange);
   var rows: RowElementSource;
+  var fetchBlock: (offset: number) => Promise<HTMLTemplateResult[]>;
   var headerNames: string[];
   return {
     render: () => renderTableForScrollDiv(scrollDivRef.value),
@@ -56,6 +58,9 @@ export function newTableRenderer(
     },
     setRows(newRows: RowElementSource) {
       rows = newRows;
+      fetchBlock = lruMemoize(blocks_per_cluster, (offset) =>
+        rows.getBlock({offset, limit: rows_per_block})
+      );
     },
   };
 
@@ -75,17 +80,19 @@ export function newTableRenderer(
       const rowHeight = dataRow ? dataRow.offsetHeight : 20;
       const blockCountAbove = Math.max(
         0,
-        Math.floor(scrollTop / rowHeight / rows_per_block) - 2
+        Math.floor(scrollTop / rowHeight / rows_per_block) -
+          blocks_per_cluster / 2
       );
       const offset = blockCountAbove * rows_per_block;
       const rowCountBelow = Math.max(0, rows.row_count - offset - cluster_size);
       const columnWidth = scrollDiv
         ? collapsedColumnWidths(scrollDiv.children[0].children[0].children[0])
         : (i: number) => '20px';
-      const rowTemplateResults: HTMLTemplateResult[] = await rows.getBlock({
-        offset,
-        limit: cluster_size,
-      });
+      const rowTemplateResults: HTMLTemplateResult[][] = await Promise.all(
+        [...Array(blocks_per_cluster).keys()].map((i) =>
+          fetchBlock(offset + i * rows_per_block)
+        )
+      );
       if (scrollDiv) {
         setTimeout(() => {
           scrollDiv.scrollTop = scrollTop;
@@ -134,14 +141,4 @@ export function newTableRenderer(
       }
     }
   }
-}
-
-function debounce(f: Function, timeout = 50) {
-  let timer: number;
-  return (...args: any[]) => {
-    clearTimeout(timer);
-    timer = setTimeout(() => {
-      f.apply(this, args);
-    }, timeout);
-  };
 }
