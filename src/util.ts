@@ -1,7 +1,7 @@
 import {supportsAdoptingStyleSheets} from 'lit';
 
 export function debounce(f: Function, timeout = 50) {
-  let timer: number;
+  let timer: any;
   return (...args: any[]) => {
     clearTimeout(timer);
     timer = setTimeout(() => {
@@ -53,9 +53,9 @@ export function lruMemoize<X, Y>(
 
 export type CompareFn<T> = (x: T, y: T) => number;
 
-export const naturalOrder = (x: any, y: any) => (typeof x < typeof y) ?
+export const naturalOrder = (x: any, y: any) => typeof x < typeof y ?
     -1 :
-    (typeof x > typeof y) ? 1 : x < y ? -1 : x > y ? 1 : 0;
+    typeof x > typeof y ? 1 : x < y ? -1 : x > y ? 1 : 0;
 
 export const columnOrder = (i: number) => (x: any[], y: any[]) =>
     naturalOrder(x[i], y[i]);
@@ -135,7 +135,7 @@ function partition<T>(a: T[], c: CompareFn<T>, b: number, e: number): number[] {
 // a constant `k` this algorithm is expected linear in `e-b`.
 export function top<T>(
     k: number, a: T[], c: CompareFn<T>, b: number, e: number) {
-  if (k === 0 || e - b < k) return;
+  if (k === 0 || e - b <= k) return;
   const [i, j] = partition(a, c, b, e);
   if (k < i - b) {
     top(k, a, c, b, i);

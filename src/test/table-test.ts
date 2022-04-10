@@ -1,10 +1,10 @@
 import {render, html} from 'lit-html';
-import {asRowElementSource, loadCsvTable} from './csv-table';
+import {asRowElementSource, loadCsvTable} from '../csv-table';
 import {
   ClassNameOptions,
   newTableRenderer,
   TableRenderer,
-} from './table-renderer';
+} from '../table-renderer';
 declare const classNames: ClassNameOptions; // from html
 
 const url =
@@ -20,8 +20,10 @@ const renderPage = async () =>
         }
       </style>
       <div style="width:80%;margin:45px">
-      <h2>Covid Statistics Today (US count level)</h2><p></p>
-      ${await tableRenderer.render()}</div>`,
+        <h2>Covid Statistics Today (US county level)</h2>
+        <p></p>
+        ${await tableRenderer.render()}
+      </div>`,
     document.body
   );
 tableRenderer = newTableRenderer(renderPage, classNames, 'test');
