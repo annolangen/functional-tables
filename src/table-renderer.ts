@@ -69,12 +69,14 @@ export function newTableRenderer(
     return scrollDiv
       ? renderTableForScrollAndDataRow(
           scrollDiv.scrollTop,
+          scrollDiv.scrollLeft,
           scrollDiv.children[0].children[0].children[2] as HTMLTableRowElement
         )
       : renderTableForScrollAndDataRow(0, undefined);
 
     async function renderTableForScrollAndDataRow(
       scrollTop: number,
+      scrollLeft: number,
       dataRow?: HTMLTableRowElement
     ) {
       const rowHeight = dataRow ? dataRow.offsetHeight : 20;
@@ -104,8 +106,14 @@ export function newTableRenderer(
             max-height: 200px;
           }
         </style>
-        <div style="overflow-x:auto;width:100%">
-          <table style="margin-bottom:0" class="${classNames.table || ''}">
+        <div style="overflow:hidden">
+          <table
+            style="margin-bottom:0;margin-left:-${scrollLeft}px;width:${scrollDiv
+              ? getComputedStyle(scrollDiv.children[0].children[0].children[0])
+                  .width
+              : 'fit-content'}"
+            class="${classNames.table || ''}"
+          >
             <thead>
               <tr>
                 ${headerNames.map(
@@ -117,7 +125,7 @@ export function newTableRenderer(
           <div
             id="${idPrefix}-data-table-container"
             class="data-table-container"
-            style="overflow-y:auto;width:fit-content"
+            style="overflow:auto"
             @scroll=${debouncedOnChange}
             ${ref(scrollDivRef)}
           >
