@@ -35,4 +35,4 @@ window.onload = async () => {
   await renderPage(); // use estimates and Ref with undefined value
   renderPage();
 };
-window.onclick = renderPage;
+window.onmousedown = window.onmouseup = renderPage;

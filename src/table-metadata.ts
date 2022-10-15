@@ -14,7 +14,7 @@ interface Column {
   name: string;
   type: DataType;
   order?: Order;
-  // Somethin for width flex control
+  // Something for width flex control
 }
 interface Row {
   is_odd?: boolean;
