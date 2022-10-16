@@ -18,6 +18,15 @@ const renderPage = async () =>
         #test-data-table-container {
           max-height: 300px;
         }
+        #test-data-table-container td:nth-child(4) {
+          text-align: end;
+        }
+        #test-data-table-container td:nth-child(5) {
+          text-align: end;
+        }
+        #test-data-table-container td:nth-child(6) {
+          text-align: end;
+        }
       </style>
       <div style="width:80%;margin:45px">
         <h2>Covid Statistics Today (US county level)</h2>
@@ -35,4 +44,4 @@ window.onload = async () => {
   await renderPage(); // use estimates and Ref with undefined value
   renderPage();
 };
-window.onclick = renderPage;
+window.onmousedown = window.onmouseup = renderPage;

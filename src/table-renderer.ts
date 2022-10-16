@@ -35,7 +35,7 @@ var next_default_id = 0;
 export function newTableRenderer(
   onChange: () => void,
   classNames: ClassNameOptions,
-  idPrefix = undefined
+  idPrefix?: string
 ): TableRenderer {
   idPrefix = idPrefix || 'generated-id-' + ++next_default_id;
   const scrollDivRef: Ref<HTMLDivElement> = createRef();

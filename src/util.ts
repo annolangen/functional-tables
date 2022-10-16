@@ -18,7 +18,9 @@ interface RingItem<X, Y> {
 }
 
 export function lruMemoize<X, Y>(
-    limit: number, f: (x: X) => Promise<Y>): (x: X) => Promise<Y> {
+  limit: number,
+  f: (x: X) => Promise<Y>
+): (x: X) => Promise<Y> {
   var mru = null;
   const map = new Map<X, RingItem<X, Y>>();
   return async (x: X) => {
@@ -53,12 +55,19 @@ export function lruMemoize<X, Y>(
 
 export type CompareFn<T> = (x: T, y: T) => number;
 
-export const naturalOrder = (x: any, y: any) => typeof x < typeof y ?
-    -1 :
-    typeof x > typeof y ? 1 : x < y ? -1 : x > y ? 1 : 0;
+export const naturalOrder = (x: any, y: any) =>
+  typeof x < typeof y
+    ? -1
+    : typeof x > typeof y
+    ? 1
+    : x < y
+    ? -1
+    : x > y
+    ? 1
+    : 0;
 
 export const columnOrder = (i: number) => (x: any[], y: any[]) =>
-    naturalOrder(x[i], y[i]);
+  naturalOrder(x[i], y[i]);
 
 export function reverse<T>(f: (x: T, y: T) => number) {
   return (x: T, y: T) => -f(x, y);
@@ -89,7 +98,7 @@ function partition<T>(a: T[], c: CompareFn<T>, b: number, e: number): number[] {
         } else if (d2 === 0) {
           swap(j++, e - 1);
         } else {
-          swap(b++, --e);  // d1 > 0 && d2 > 0
+          swap(b++, --e); // d1 > 0 && d2 > 0
           break;
         }
       }
@@ -134,7 +143,12 @@ function partition<T>(a: T[], c: CompareFn<T>, b: number, e: number): number[] {
 // [b,k) are the smallest `k` elements without further ordering guarantees. For
 // a constant `k` this algorithm is expected linear in `e-b`.
 export function top<T>(
-    k: number, a: T[], c: CompareFn<T>, b: number, e: number) {
+  k: number,
+  a: T[],
+  c: CompareFn<T>,
+  b: number,
+  e: number
+) {
   if (k === 0 || e - b <= k) return;
   const [i, j] = partition(a, c, b, e);
   if (k < i - b) {

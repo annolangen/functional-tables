@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "HTML tables from functional programming",
   "scripts": {
+    "start": "parcel src/test/test-bulma.html",
     "test": "jest",
     "format": "prettier \"**/*.{cjs,html,js,json,md,ts}\" --write"
   },
