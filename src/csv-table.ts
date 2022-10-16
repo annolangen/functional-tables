@@ -1,4 +1,4 @@
-import {html, HTMLTemplateResult} from 'lit-html';
+import {html, HTMLTemplateResult} from 'lit';
 import {RowElementSource, RowElementSourceParams} from './table-renderer';
 
 export interface CsvTable {

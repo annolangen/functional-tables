@@ -1,6 +1,6 @@
-import type {HTMLTemplateResult} from 'lit-html';
-import {html} from 'lit-html';
-import {createRef, Ref, ref} from 'lit-html/directives/ref';
+import type {HTMLTemplateResult} from 'lit';
+import {html} from 'lit';
+import {createRef, Ref, ref} from 'lit/directives/ref';
 import {debounce, lruMemoize} from './util';
 
 export interface RowElementSourceParams {

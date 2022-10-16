@@ -2,7 +2,6 @@
   "name": "functional-tables",
   "version": "1.0.0",
   "description": "HTML tables from functional programming",
-  "main": "index.js",
   "scripts": {
     "test": "jest",
     "format": "prettier \"**/*.{cjs,html,js,json,md,ts}\" --write"

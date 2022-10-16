@@ -1,4 +1,4 @@
-import {render, html} from 'lit-html';
+import {render, html} from 'lit';
 import {asRowElementSource, loadCsvTable} from '../csv-table';
 import {
   ClassNameOptions,
