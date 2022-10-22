@@ -1,10 +1,10 @@
 import {render, html} from 'lit';
-import {asRowElementSource, loadCsvTable} from '../csv-table';
+import {asRowElementSource, loadCsvTable} from '../src/csv-table';
 import {
   ClassNameOptions,
   newTableRenderer,
   TableRenderer,
-} from '../table-renderer';
+} from '../src/table-renderer';
 declare const classNames: ClassNameOptions; // from html
 
 const url =

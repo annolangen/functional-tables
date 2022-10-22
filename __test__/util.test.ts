@@ -1,4 +1,4 @@
-import {naturalOrder, qsort, reverse, top} from '../util';
+import {naturalOrder, qsort, reverse, top} from '../src/util';
 
 test('Top1', () => {
   const a = [4, 3, 2, 1];

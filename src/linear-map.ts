@@ -29,7 +29,7 @@ export interface LinearOperator {
   transpose(): LinearOperator;
 }
 
-function makeLinearMapFromOp(op: LinearOperator): LinearMap {
+export function makeLinearMapFromOp(op: LinearOperator): LinearMap {
   return {
     input_dimension: op.dimension,
     output_dimension: op.dimension,
@@ -39,8 +39,8 @@ function makeLinearMapFromOp(op: LinearOperator): LinearMap {
 }
 
 export function apply(m: LinearMap, x: Float64Array): Float64Array {
-  const y = Float64Array.from(Array(m.output_dimension), _ => 0);
-  m.foreach2d((c_ij, i, j) => (y[i] = c_ij * x[j]));
+  const y = Float64Array.from({length: m.output_dimension}, _ => 0);
+  m.foreach2d((c_ij, i, j) => (y[i] += c_ij * x[j]));
   return y;
 }
 
@@ -66,7 +66,7 @@ export function makeLinearMapFromFloatGrid(rows: Float64Array[]): LinearMap {
   return result;
 
   function foreach2d(f: CellSink2D) {
-    rows.forEach((row, i) => row.forEach((c_ij, j) => f(i, j, c_ij)));
+    rows.forEach((row, i) => row.forEach((c_ij, j) => f(c_ij, i, j)));
   }
 }
 
