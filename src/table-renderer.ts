@@ -46,7 +46,7 @@ export function newTableRenderer(
   return {
     render: () => renderTableForScrollDiv(scrollDivRef.value),
     setScrollPercent(percent: number) {
-      ((d) => {
+      (d => {
         if (d) {
           d.scrollTop =
             ((d.children[0] as HTMLElement).offsetHeight * percent) / 100;
@@ -58,7 +58,7 @@ export function newTableRenderer(
     },
     setRows(newRows: RowElementSource) {
       rows = newRows;
-      fetchBlock = lruMemoize(blocks_per_cluster, (offset) =>
+      fetchBlock = lruMemoize(blocks_per_cluster, offset =>
         rows.getBlock({offset, limit: rows_per_block})
       );
     },
@@ -91,7 +91,7 @@ export function newTableRenderer(
         ? collapsedColumnWidths(scrollDiv.children[0].children[0].children[0])
         : (i: number) => '20px';
       const rowTemplateResults: HTMLTemplateResult[][] = await Promise.all(
-        [...Array(blocks_per_cluster).keys()].map((i) =>
+        [...Array(blocks_per_cluster).keys()].map(i =>
           fetchBlock(offset + i * rows_per_block)
         )
       );

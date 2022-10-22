@@ -1,7 +1,7 @@
-In many tables numeric columns are related. 
+In many tables numeric columns are related.
 Think of, Olympic medal counts by country, maybe also listing GDP and population size.
-A linear approximation around the column means often captures this relationship. 
-We can center all the numeric columns, solve argmin_x_k | A_k x_k - y_k |_2 for each column y_k where A_k is the matrix of the remaining centered columns.
+A linear approximation around the column means often captures this relationship.
+We can center all the numeric columns, solve argmin_x_k | A_k x_k - y_k |\_2 for each column y_k where A_k is the matrix of the remaining centered columns.
 Then A_k x_k is a "least squares prediction" of y_k given the linear relationship.
 Compute the standard deviation of the prediction error.
 Then, we can highlight anomalies based on [z-score](https://en.wikipedia.org/wiki/Standard_score).

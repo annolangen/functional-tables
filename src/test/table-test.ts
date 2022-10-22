@@ -39,7 +39,7 @@ tableRenderer = newTableRenderer(renderPage, classNames, 'test');
 
 window.onload = async () => {
   const table = await futureTable;
-  tableRenderer.setHeaders(table.headers.map((h) => h.replace(/_/g, ' ')));
+  tableRenderer.setHeaders(table.headers.map(h => h.replace(/_/g, ' ')));
   tableRenderer.setRows(asRowElementSource(table));
   await renderPage(); // use estimates and Ref with undefined value
   renderPage();
