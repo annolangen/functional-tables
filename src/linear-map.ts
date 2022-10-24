@@ -1,5 +1,15 @@
-type CellSink2D = (cell_i_j: number, i: number, j: number) => void;
+export type CellSink2D = (cell_i_j: number, i: number, j: number) => void;
 type CellSource2D = (sink: CellSink2D) => void;
+export type Matrix = {
+  data: Float64Array; m: number; n: number;
+}
+
+export interface Vector {
+  readonly length: number;
+  get(k: number): number;
+  set(k: number, v: number): void;
+  subvector(offset: number): Vector;
+}
 
 // A linear map is characterized by f(a + c*b) = f(a) + c*f(b) for vectors a, b,
 // and scalar c. They are equivalent to matrices, but imporant linear maps with
@@ -29,18 +39,56 @@ export interface LinearOperator {
   transpose(): LinearOperator;
 }
 
-export function makeLinearMapFromOp(op: LinearOperator): LinearMap {
+export function foreach2d({data, m, n}: Matrix, sink: CellSink2D) {
+  for (var i = m; --i >= 0;) {
+    for (var j = n; --j >= 0;) sink(data[n * i + j], i, j);
+  }
+}
+
+function newColumnVector(
+    data: Float64Array, length: number, stride: number): Vector {
+  return {
+    length,
+    get: k => data[k * stride],
+    set(k: number, v: number) {
+      data[k * stride] = v;
+    },
+    subvector: offset => newColumnVector(
+        data.subarray(offset * stride), length - offset, stride),
+  };
+}
+
+export const columns = ({data, m, n}: Matrix) => Array.from(
+    {length: n}, (_, k) => newColumnVector(data.subarray(k * m), m, n));
+
+function newRowVector(data: Float64Array, length: number): Vector {
+  return {
+    length,
+    get: k => data[k],
+    set(k: number, v: number) {
+      data[k] = v;
+    },
+    subvector: offset => newRowVector(data.subarray(offset), length - offset),
+  };
+}
+
+export const rows = ({data, m, n}: Matrix) =>
+    Array.from({length: m}, (_, k) => newRowVector(data.subarray(k * n), n));
+
+export const vectorFromArray = (a: Float64Array) => newRowVector(a, a.length);
+
+export function linearMapFromOp(op: LinearOperator): LinearMap {
   return {
     input_dimension: op.dimension,
     output_dimension: op.dimension,
     foreach2d: op.foreach2d,
-    transpose: () => makeLinearMapFromOp(op.transpose()),
+    transpose: () => linearMapFromOp(op.transpose()),
   };
 }
 
-export function apply(m: LinearMap, x: Float64Array): Float64Array {
+export function apply(m: LinearMap, x: Vector): Float64Array {
   const y = Float64Array.from({length: m.output_dimension}, _ => 0);
-  m.foreach2d((c_ij, i, j) => (y[i] += c_ij * x[j]));
+  m.foreach2d((c_ij, i, j) => (y[i] += c_ij * x.get(j)));
   return y;
 }
 
@@ -50,7 +98,23 @@ function makeForEachTransposed(foreach2d: CellSource2D): CellSource2D {
   };
 }
 
-export function makeLinearMapFromFloatGrid(rows: Float64Array[]): LinearMap {
+export function linearMapFromMatrix({data, m, n}: Matrix): LinearMap {
+  const myForeach2d: CellSource2D = sink => foreach2d({data, m, n}, sink);
+  const result: LinearMap = {
+    input_dimension: n,
+    output_dimension: m,
+    foreach2d: myForeach2d,
+    transpose: () => ({
+      input_dimension: m,
+      output_dimension: n,
+      foreach2d: makeForEachTransposed(myForeach2d),
+      transpose: () => result,
+    }),
+  };
+  return result;
+}
+
+export function linearMapFromFloat64Array(rows: Float64Array[]): LinearMap {
   const row0Length = rows.length ? rows[0].length : 0;
   const result: LinearMap = {
     input_dimension: row0Length,
@@ -92,9 +156,7 @@ export function makeDiagonal(d: Float64Array): LinearOperator {
 // k-dimensional matrix `I - 2 v v^T`, where v is some unit length
 // vector, designed to accomplish the zeroing of the lower column.
 export function makeHousholderReflection(
-  column: Float64Array,
-  k: number
-): LinearOperator {
+    column: Float64Array, k: number): LinearOperator {
   const v = getReflector();
   const result = {
     dimension: column.length,
@@ -104,9 +166,9 @@ export function makeHousholderReflection(
     },
     transpose: () => result,
     foreach2d(f: CellSink2D) {
-      for (var i = k; --i >= 0; ) f(1, i, i);
-      for (var i = k; --i >= 0; ) {
-        for (var j = k; --k >= 0; ) f(1 - 2 * v[i] * v[j], k + i, k + j);
+      for (var i = k; --i >= 0;) f(1, i, i);
+      for (var i = k; --i >= 0;) {
+        for (var j = k; --k >= 0;) f(1 - 2 * v[i] * v[j], k + i, k + j);
       }
     },
   };
