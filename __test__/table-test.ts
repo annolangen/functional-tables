@@ -1,5 +1,9 @@
 import {render, html} from 'lit';
-import {asRowElementSource, loadCsvTable} from '../src/csv-table';
+import {
+  asDataFrameElementSource,
+  asQuickRowElementSource,
+  loadCsvTable,
+} from '../src/csv-table';
 import {
   ClassNameOptions,
   newTableRenderer,
@@ -40,7 +44,7 @@ tableRenderer = newTableRenderer(renderPage, classNames, 'test');
 window.onload = async () => {
   const table = await futureTable;
   tableRenderer.setHeaders(table.headers.map(h => h.replace(/_/g, ' ')));
-  tableRenderer.setRows(asRowElementSource(table));
+  tableRenderer.setRows(asDataFrameElementSource(table));
   await renderPage(); // use estimates and Ref with undefined value
   renderPage();
 };

@@ -6,6 +6,8 @@ import {debounce, lruMemoize} from './util';
 export interface RowElementSourceParams {
   offset: number;
   limit: number;
+  orderColumn?: number;
+  isAscending?: boolean;
 }
 
 export interface RowElementSource {
@@ -43,6 +45,22 @@ export function newTableRenderer(
   var rows: RowElementSource;
   var fetchBlock: (offset: number) => Promise<HTMLTemplateResult[]>;
   var headerNames: string[];
+  var isAscending: boolean = true;
+  var orderColumn: number | undefined;
+  const clickColumn = (i: number) => () => {
+    if (orderColumn === i) {
+      if (isAscending) {
+        isAscending = false;
+      } else {
+        orderColumn = undefined;
+      }
+    } else {
+      orderColumn = i;
+      isAscending = true;
+    }
+    renderTableForScrollDiv(scrollDivRef.value);
+  };
+
   return {
     render: () => renderTableForScrollDiv(scrollDivRef.value),
     setScrollPercent(percent: number) {
@@ -59,7 +77,7 @@ export function newTableRenderer(
     setRows(newRows: RowElementSource) {
       rows = newRows;
       fetchBlock = lruMemoize(blocks_per_cluster, offset =>
-        rows.getBlock({offset, limit: rows_per_block})
+        rows.getBlock({offset, limit: rows_per_block, orderColumn, isAscending})
       );
     },
   };
@@ -117,7 +135,13 @@ export function newTableRenderer(
             <thead>
               <tr>
                 ${headerNames.map(
-                  (h, i) => html`<th style="width:${columnWidth(i)}">${h}</th>`
+                  (h, i) =>
+                    html`<th
+                      style="width:${columnWidth(i)}"
+                      @click=${clickColumn(i)}
+                    >
+                      ${h}${i == orderColumn ? (isAscending ? '↑' : '↓') : ''}
+                    </th>`
                 )}
               </tr>
             </thead>
