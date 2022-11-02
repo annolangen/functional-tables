@@ -8,21 +8,29 @@ export interface CsvTable {
   slice(offset: number, limit: number): (string | number)[][];
 }
 
-const cellRegexp = /(?:(-?[0-9]+[.]?[0-9]*)|([^,"]*)|"((?:[^"]|"")*)")(?:$|,)/g;
+const cellRegexp =
+  /(?:(-?[0-9]+[.]?[0-9]*)|([^,"]+)|"((?:[^"]|"")*)"|,)(?=(?:$|,))/g;
 
-function parseRow(line: string) {
-  return [...line.matchAll(cellRegexp)].map(m =>
-    m[1] ? Number(m[1]) : m[2] ? m[2] : m[3] ? m[3].replace(/""/g, '"') : ''
-  );
+function parseRow(line: string, maxCellCount: number) {
+  return [...line.matchAll(cellRegexp)]
+    .filter((_, i) => i < maxCellCount)
+    .map(m =>
+      m[1] ? Number(m[1]) : m[2] ? m[2] : m[3] ? m[3].replace(/""/g, '"') : ''
+    );
 }
 
 export async function loadCsvTable(url: string) {
   const rows = (await (await fetch(url)).text()).split('\n');
+  const headers = parseRow(rows[0], Number.MAX_SAFE_INTEGER).map(c =>
+    String(c)
+  );
   return {
-    headers: parseRow(rows[0]).map(c => String(c)),
-    row_count: rows.length,
+    headers,
+    row_count: rows.length - 1,
     slice: (offset: number, limit: number) =>
-      rows.slice(offset + 1, offset + 1 + limit).map(parseRow),
+      rows
+        .slice(offset + 1, offset + 1 + limit)
+        .map(line => parseRow(line, headers.length)),
   };
 }
 
@@ -94,7 +102,7 @@ function newColumnBuilder(
     permutation.sort(compareFn);
     return (offset: number, limit: number, isAscending?: boolean) =>
       Array.from(
-        Array(Math.min(limit, row_count - offset)),
+        Array(Math.max(0, Math.min(limit, row_count - offset))),
         isAscending === false
           ? (_, i) => permutation[row_count - offset - i]
           : (_, i) => permutation[offset + i]
@@ -129,7 +137,7 @@ export function asDataFrameElementSource(table: CsvTable): RowElementSource {
       orderColumn < headers.length
         ? columns[orderColumn].rowIndices(offset, limit, isAscending)
         : Array.from(
-            Array(Math.min(limit, row_count - offset)),
+            Array(Math.max(0, Math.min(limit, row_count - offset))),
             (_, i) => offset + i
           );
     return indices.map(

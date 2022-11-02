@@ -1,4 +1,12 @@
-import {apply, LinearMap, linearMapFromFloat64Array, linearMapFromOp, LinearOperator, makeDiagonal, vectorFromArray,} from '../src/linear-map';
+import {
+  apply,
+  LinearMap,
+  linearMapFromFloat64Array,
+  linearMapFromOp,
+  LinearOperator,
+  makeDiagonal,
+  vectorFromArray,
+} from '../src/linear-map';
 
 function newArray<T>(n: number, mapfn: (ignore: any, k: number) => T): T[] {
   return Array.from({length: n}, mapfn);
@@ -11,8 +19,9 @@ function opAsGrid(op: LinearOperator) {
 }
 
 function mapAsGrid(m: LinearMap) {
-  const result =
-      newArray(m.output_dimension, _ => newArray(m.input_dimension, _ => 0));
+  const result = newArray(m.output_dimension, _ =>
+    newArray(m.input_dimension, _ => 0)
+  );
   m.foreach2d((cij, i, j) => (result[i][j] = cij));
   return result;
 }
@@ -25,8 +34,9 @@ function updated(op: LinearOperator, x: Float64Array) {
 test('makeDiagonal', () => {
   const d = makeDiagonal(Float64Array.of(1, 2, 3));
   expect(d.dimension).toBe(3);
-  expect(updated(d, Float64Array.of(7, 8, 9)))
-      .toEqual(Float64Array.of(7, 16, 27));
+  expect(updated(d, Float64Array.of(7, 8, 9))).toEqual(
+    Float64Array.of(7, 16, 27)
+  );
   expect(opAsGrid(d)).toEqual([
     [1, 0, 0],
     [0, 2, 0],
@@ -46,8 +56,9 @@ test('makeDiagonal', () => {
     [0, 2, 0],
     [0, 0, 3],
   ]);
-  expect(apply(m, vectorFromArray(Float64Array.of(7, 8, 9))))
-      .toEqual(Float64Array.of(7, 16, 27));
+  expect(apply(m, vectorFromArray(Float64Array.of(7, 8, 9)))).toEqual(
+    Float64Array.of(7, 16, 27)
+  );
 });
 
 test('makeLinearMapFromFloatGrid', () => {
@@ -67,8 +78,9 @@ test('makeLinearMapFromFloatGrid', () => {
     [0, 0, 1],
     [0, 1, 0],
   ]);
-  expect(apply(m, vectorFromArray(Float64Array.of(8, 9))))
-      .toEqual(Float64Array.of(0, 9, 8));
+  expect(apply(m, vectorFromArray(Float64Array.of(8, 9)))).toEqual(
+    Float64Array.of(0, 9, 8)
+  );
 });
 
 test('makeHousholderReflection', () => {});

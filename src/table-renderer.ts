@@ -47,19 +47,7 @@ export function newTableRenderer(
   var headerNames: string[];
   var isAscending: boolean = true;
   var orderColumn: number | undefined;
-  const clickColumn = (i: number) => () => {
-    if (orderColumn === i) {
-      if (isAscending) {
-        isAscending = false;
-      } else {
-        orderColumn = undefined;
-      }
-    } else {
-      orderColumn = i;
-      isAscending = true;
-    }
-    renderTableForScrollDiv(scrollDivRef.value);
-  };
+  var clickColumn: (() => void)[];
 
   return {
     render: () => renderTableForScrollDiv(scrollDivRef.value),
@@ -73,12 +61,29 @@ export function newTableRenderer(
     },
     setHeaders(newNames: string[]) {
       headerNames = newNames;
+      clickColumn = headerNames.map((_, i) => () => {
+        if (orderColumn === i) {
+          if (isAscending) {
+            isAscending = false;
+          } else {
+            orderColumn = undefined;
+          }
+        } else {
+          orderColumn = i;
+          isAscending = true;
+        }
+        onChange();
+      });
     },
     setRows(newRows: RowElementSource) {
       rows = newRows;
-      fetchBlock = lruMemoize(blocks_per_cluster, offset =>
-        rows.getBlock({offset, limit: rows_per_block, orderColumn, isAscending})
-      );
+      fetchBlock = offset =>
+        rows.getBlock({
+          offset: offset,
+          limit: rows_per_block,
+          orderColumn,
+          isAscending,
+        });
     },
   };
 
@@ -138,7 +143,7 @@ export function newTableRenderer(
                   (h, i) =>
                     html`<th
                       style="width:${columnWidth(i)}"
-                      @click=${clickColumn(i)}
+                      @mousedown=${clickColumn[i]}
                     >
                       ${h}${i == orderColumn ? (isAscending ? '↑' : '↓') : ''}
                     </th>`

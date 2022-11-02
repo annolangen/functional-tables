@@ -1,8 +1,10 @@
 export type CellSink2D = (cell_i_j: number, i: number, j: number) => void;
 type CellSource2D = (sink: CellSink2D) => void;
 export type Matrix = {
-  data: Float64Array; m: number; n: number;
-}
+  data: Float64Array;
+  m: number;
+  n: number;
+};
 
 export interface Vector {
   readonly length: number;
@@ -40,26 +42,31 @@ export interface LinearOperator {
 }
 
 export function foreach2d({data, m, n}: Matrix, sink: CellSink2D) {
-  for (var i = m; --i >= 0;) {
-    for (var j = n; --j >= 0;) sink(data[n * i + j], i, j);
+  for (var i = m; --i >= 0; ) {
+    for (var j = n; --j >= 0; ) sink(data[n * i + j], i, j);
   }
 }
 
 function newColumnVector(
-    data: Float64Array, length: number, stride: number): Vector {
+  data: Float64Array,
+  length: number,
+  stride: number
+): Vector {
   return {
     length,
     get: k => data[k * stride],
     set(k: number, v: number) {
       data[k * stride] = v;
     },
-    subvector: offset => newColumnVector(
-        data.subarray(offset * stride), length - offset, stride),
+    subvector: offset =>
+      newColumnVector(data.subarray(offset * stride), length - offset, stride),
   };
 }
 
-export const columns = ({data, m, n}: Matrix) => Array.from(
-    {length: n}, (_, k) => newColumnVector(data.subarray(k * m), m, n));
+export const columns = ({data, m, n}: Matrix) =>
+  Array.from({length: n}, (_, k) =>
+    newColumnVector(data.subarray(k * m), m, n)
+  );
 
 function newRowVector(data: Float64Array, length: number): Vector {
   return {
@@ -73,7 +80,7 @@ function newRowVector(data: Float64Array, length: number): Vector {
 }
 
 export const rows = ({data, m, n}: Matrix) =>
-    Array.from({length: m}, (_, k) => newRowVector(data.subarray(k * n), n));
+  Array.from({length: m}, (_, k) => newRowVector(data.subarray(k * n), n));
 
 export const vectorFromArray = (a: Float64Array) => newRowVector(a, a.length);
 
@@ -156,7 +163,9 @@ export function makeDiagonal(d: Float64Array): LinearOperator {
 // k-dimensional matrix `I - 2 v v^T`, where v is some unit length
 // vector, designed to accomplish the zeroing of the lower column.
 export function makeHousholderReflection(
-    column: Float64Array, k: number): LinearOperator {
+  column: Float64Array,
+  k: number
+): LinearOperator {
   const v = getReflector();
   const result = {
     dimension: column.length,
@@ -166,9 +175,9 @@ export function makeHousholderReflection(
     },
     transpose: () => result,
     foreach2d(f: CellSink2D) {
-      for (var i = k; --i >= 0;) f(1, i, i);
-      for (var i = k; --i >= 0;) {
-        for (var j = k; --k >= 0;) f(1 - 2 * v[i] * v[j], k + i, k + j);
+      for (var i = k; --i >= 0; ) f(1, i, i);
+      for (var i = k; --i >= 0; ) {
+        for (var j = k; --k >= 0; ) f(1 - 2 * v[i] * v[j], k + i, k + j);
       }
     },
   };
