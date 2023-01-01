@@ -1,11 +1,11 @@
-// Extension of Float64Array that also indicates a column count to
-
 import { blasDot } from './blas';
 
+// Extension of Float64Array that also indicates a column count to
 // interpret it as a matrix in row major order.
 export type Float64Matrix = Float64Array & { cols: number };
 
-// Returns a Float64Matrix from from a Float64Array in row major order with the given row count.
+// Returns a Float64Matrix from from a Float64Array in row major order
+// with the given row count.
 export function matrix(a: Float64Array, colCount: number): Float64Matrix {
   const y = a as Float64Matrix;
   y.cols = colCount;
@@ -37,9 +37,9 @@ export const rowRowDot = (
 ) => blasDot(a.cols, a, 1, i * a.cols, b, 1, j * b.cols);
 
 export function multiply(a: Float64Matrix, b: Float64Matrix) {
-  if (a.length < a.cols * b.cols) {
+  if (a.cols * b.cols < b.length) {
     throw new TypeError(
-      `Too few rows ${a.length / a.cols} to multiply with ${b.cols} columns`,
+      `Too few columns ${a.cols} to multiply with ${b.length / b.cols} rows`,
     );
   }
   return matrix(
