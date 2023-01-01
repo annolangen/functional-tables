@@ -21,9 +21,14 @@ export function lruMemoize<X, Y>(
   limit: number,
   f: (x: X) => Promise<Y>
 ): (x: X) => Promise<Y> {
-  var mru = null;
+  var mru;
   const map = new Map<X, RingItem<X, Y>>();
   return async (x: X) => {
+    if (!mru) {
+      mru = {key: x, value: await f(x)};
+      mru.next = mru.prev = mru;
+      return mru.value;
+    }
     const item = map.get(x);
     if (item) {
       if (mru != item) {
@@ -33,23 +38,18 @@ export function lruMemoize<X, Y>(
         item.prev = mru.prev;
         mru = item;
       }
-    } else {
-      const value = await f(x);
-      if (map.size >= limit) {
-        const lru = mru.prev;
-        lru.next.prev = lru.prev;
-        lru.prev.next = lru.next;
-        map.delete(lru.key);
-      }
-      if (mru) {
-        mru = {next: mru, prev: mru.prev, key: x, value};
-      } else {
-        mru = {key: x, value};
-        mru.next = mru.prev = mru;
-      }
-      map.set(x, mru);
+      return item.value;
     }
-    return mru.value;
+    const value = await f(x);
+    if (map.size >= limit) {
+      const lru = mru.prev;
+      lru.next.prev = lru.prev;
+      lru.prev.next = lru.next;
+      map.delete(lru.key);
+    }
+    mru = {next: mru, prev: mru.prev, key: x, value};
+    map.set(x, mru);
+    return value;
   };
 }
 
