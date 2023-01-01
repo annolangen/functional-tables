@@ -41,7 +41,7 @@ export interface LinearOperator {
   transpose(): LinearOperator;
 }
 
-export function foreach2d({data, m, n}: Matrix, sink: CellSink2D) {
+export function foreach2d({ data, m, n }: Matrix, sink: CellSink2D) {
   for (var i = m; --i >= 0; ) {
     for (var j = n; --j >= 0; ) sink(data[n * i + j], i, j);
   }
@@ -50,37 +50,37 @@ export function foreach2d({data, m, n}: Matrix, sink: CellSink2D) {
 function newColumnVector(
   data: Float64Array,
   length: number,
-  stride: number
+  stride: number,
 ): Vector {
   return {
     length,
-    get: k => data[k * stride],
+    get: (k) => data[k * stride],
     set(k: number, v: number) {
       data[k * stride] = v;
     },
-    subvector: offset =>
+    subvector: (offset) =>
       newColumnVector(data.subarray(offset * stride), length - offset, stride),
   };
 }
 
-export const columns = ({data, m, n}: Matrix) =>
-  Array.from({length: n}, (_, k) =>
-    newColumnVector(data.subarray(k * m), m, n)
+export const columns = ({ data, m, n }: Matrix) =>
+  Array.from({ length: n }, (_, k) =>
+    newColumnVector(data.subarray(k * m), m, n),
   );
 
 function newRowVector(data: Float64Array, length: number): Vector {
   return {
     length,
-    get: k => data[k],
+    get: (k) => data[k],
     set(k: number, v: number) {
       data[k] = v;
     },
-    subvector: offset => newRowVector(data.subarray(offset), length - offset),
+    subvector: (offset) => newRowVector(data.subarray(offset), length - offset),
   };
 }
 
-export const rows = ({data, m, n}: Matrix) =>
-  Array.from({length: m}, (_, k) => newRowVector(data.subarray(k * n), n));
+export const rows = ({ data, m, n }: Matrix) =>
+  Array.from({ length: m }, (_, k) => newRowVector(data.subarray(k * n), n));
 
 export const vectorFromArray = (a: Float64Array) => newRowVector(a, a.length);
 
@@ -94,7 +94,7 @@ export function linearMapFromOp(op: LinearOperator): LinearMap {
 }
 
 export function apply(m: LinearMap, x: Vector): Float64Array {
-  const y = Float64Array.from({length: m.output_dimension}, _ => 0);
+  const y = Float64Array.from({ length: m.output_dimension }, (_) => 0);
   m.foreach2d((c_ij, i, j) => (y[i] += c_ij * x.get(j)));
   return y;
 }
@@ -105,8 +105,8 @@ function makeForEachTransposed(foreach2d: CellSource2D): CellSource2D {
   };
 }
 
-export function linearMapFromMatrix({data, m, n}: Matrix): LinearMap {
-  const myForeach2d: CellSource2D = sink => foreach2d({data, m, n}, sink);
+export function linearMapFromMatrix({ data, m, n }: Matrix): LinearMap {
+  const myForeach2d: CellSource2D = (sink) => foreach2d({ data, m, n }, sink);
   const result: LinearMap = {
     input_dimension: n,
     output_dimension: m,
@@ -164,7 +164,7 @@ export function makeDiagonal(d: Float64Array): LinearOperator {
 // vector, designed to accomplish the zeroing of the lower column.
 export function makeHousholderReflection(
   column: Float64Array,
-  k: number
+  k: number,
 ): LinearOperator {
   const v = getReflector();
   const result = {

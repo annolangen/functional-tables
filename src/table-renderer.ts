@@ -1,7 +1,7 @@
-import type {HTMLTemplateResult} from 'lit';
-import {html} from 'lit';
-import {createRef, Ref, ref} from 'lit/directives/ref';
-import {debounce, lruMemoize} from './util';
+import type { HTMLTemplateResult } from 'lit';
+import { html } from 'lit';
+import { createRef, Ref, ref } from 'lit/directives/ref';
+import { debounce, lruMemoize } from './util';
 
 export interface RowElementSourceParams {
   offset: number;
@@ -37,9 +37,9 @@ var next_default_id = 0;
 export function newTableRenderer(
   onChange: () => void,
   classNames: ClassNameOptions,
-  idPrefix?: string
+  idPrefix?: string,
 ): TableRenderer {
-  idPrefix = idPrefix || 'generated-id-' + ++next_default_id;
+  idPrefix = idPrefix || `generated-id-${++next_default_id}`;
   const scrollDivRef: Ref<HTMLDivElement> = createRef();
   const debouncedOnChange = debounce(onChange);
   var rows: RowElementSource;
@@ -52,7 +52,7 @@ export function newTableRenderer(
   return {
     render: () => renderTableForScrollDiv(scrollDivRef.value),
     setScrollPercent(percent: number) {
-      (d => {
+      ((d) => {
         if (d) {
           d.scrollTop =
             ((d.children[0] as HTMLElement).offsetHeight * percent) / 100;
@@ -77,7 +77,7 @@ export function newTableRenderer(
     },
     setRows(newRows: RowElementSource) {
       rows = newRows;
-      fetchBlock = offset =>
+      fetchBlock = (offset) =>
         rows.getBlock({
           offset: offset,
           limit: rows_per_block,
@@ -88,25 +88,25 @@ export function newTableRenderer(
   };
 
   async function renderTableForScrollDiv(scrollDiv?: HTMLDivElement) {
-    if (!rows || !headerNames) return html``;
+    if (!(rows && headerNames)) return html``;
     return scrollDiv
       ? renderTableForScrollAndDataRow(
           scrollDiv.scrollTop,
           scrollDiv.scrollLeft,
-          scrollDiv.children[0].children[0].children[2] as HTMLTableRowElement
+          scrollDiv.children[0].children[0].children[2] as HTMLTableRowElement,
         )
       : renderTableForScrollAndDataRow(0, undefined);
 
     async function renderTableForScrollAndDataRow(
       scrollTop: number,
       scrollLeft: number,
-      dataRow?: HTMLTableRowElement
+      dataRow?: HTMLTableRowElement,
     ) {
       const rowHeight = dataRow ? dataRow.offsetHeight : 20;
       const blockCountAbove = Math.max(
         0,
         Math.floor(scrollTop / rowHeight / rows_per_block) -
-          blocks_per_cluster / 2
+          blocks_per_cluster / 2,
       );
       const offset = blockCountAbove * rows_per_block;
       const rowCountBelow = Math.max(0, rows.row_count - offset - cluster_size);
@@ -114,9 +114,9 @@ export function newTableRenderer(
         ? collapsedColumnWidths(scrollDiv.children[0].children[0].children[0])
         : (i: number) => '20px';
       const rowTemplateResults: HTMLTemplateResult[][] = await Promise.all(
-        [...Array(blocks_per_cluster).keys()].map(i =>
-          fetchBlock(offset + i * rows_per_block)
-        )
+        [...Array(blocks_per_cluster).keys()].map((i) =>
+          fetchBlock(offset + i * rows_per_block),
+        ),
       );
       if (scrollDiv) {
         setTimeout(() => {
@@ -131,10 +131,12 @@ export function newTableRenderer(
         </style>
         <div style="overflow:hidden">
           <table
-            style="margin-bottom:0;margin-left:-${scrollLeft}px;width:${scrollDiv
-              ? getComputedStyle(scrollDiv.children[0].children[0].children[0])
-                  .width
-              : 'fit-content'}"
+            style="margin-bottom:0;margin-left:-${scrollLeft}px;width:${
+        scrollDiv
+          ? getComputedStyle(scrollDiv.children[0].children[0].children[0])
+              .width
+          : 'fit-content'
+      }"
             class="${classNames.table || ''}"
           >
             <thead>
@@ -145,8 +147,8 @@ export function newTableRenderer(
                       style="width:${columnWidth(i)}"
                       @mousedown=${clickColumn[i]}
                     >
-                      ${h}${i == orderColumn ? (isAscending ? '↑' : '↓') : ''}
-                    </th>`
+                      ${h}${i === orderColumn ? (isAscending ? '↑' : '↓') : ''}
+                    </th>`,
                 )}
               </tr>
             </thead>

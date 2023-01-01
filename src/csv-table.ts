@@ -1,6 +1,6 @@
-import {html, HTMLTemplateResult} from 'lit';
-import {RowElementSource, RowElementSourceParams} from './table-renderer';
-import {columnOrder} from './util';
+import { html, HTMLTemplateResult } from 'lit';
+import { RowElementSource, RowElementSourceParams } from './table-renderer';
+import { columnOrder } from './util';
 
 export interface CsvTable {
   readonly headers: string[];
@@ -14,15 +14,15 @@ const cellRegexp =
 function parseRow(line: string, maxCellCount: number) {
   return [...line.matchAll(cellRegexp)]
     .filter((_, i) => i < maxCellCount)
-    .map(m =>
-      m[1] ? Number(m[1]) : m[2] ? m[2] : m[3] ? m[3].replace(/""/g, '"') : ''
+    .map((m) =>
+      m[1] ? Number(m[1]) : m[2] ? m[2] : m[3] ? m[3].replace(/""/g, '"') : '',
     );
 }
 
 export async function loadCsvTable(url: string) {
   const rows = (await (await fetch(url)).text()).split('\n');
-  const headers = parseRow(rows[0], Number.MAX_SAFE_INTEGER).map(c =>
-    String(c)
+  const headers = parseRow(rows[0], Number.MAX_SAFE_INTEGER).map((c) =>
+    String(c),
   );
   return {
     headers,
@@ -30,7 +30,7 @@ export async function loadCsvTable(url: string) {
     slice: (offset: number, limit: number) =>
       rows
         .slice(offset + 1, offset + 1 + limit)
-        .map(line => parseRow(line, headers.length)),
+        .map((line) => parseRow(line, headers.length)),
   };
 }
 
@@ -39,10 +39,10 @@ export function asQuickRowElementSource(table: CsvTable): RowElementSource {
     row_count: table.row_count,
     getBlock: async (params: RowElementSourceParams) =>
       table.slice(params.offset, params.limit).map(
-        r =>
+        (r) =>
           html`<tr>
-            ${r.map(c => html`<td>${c}</td>`)}
-          </tr>`
+            ${r.map((c) => html`<td>${c}</td>`)}
+          </tr>`,
       ),
   };
 }
@@ -60,7 +60,7 @@ interface ColumnBuilder {
 
 function newColumnBuilder(
   header_name: string,
-  row_count: number
+  row_count: number,
 ): ColumnBuilder {
   const floats = new Float64Array(row_count);
   const strings: string[] = Array(row_count);
@@ -82,7 +82,7 @@ function newColumnBuilder(
       if (number_count === row_count) {
         return {
           header_name,
-          get: i => floats[i],
+          get: (i) => floats[i],
           rowIndices: index((a, b) => floats[a] - floats[b]),
         };
       }
@@ -91,39 +91,39 @@ function newColumnBuilder(
       }
       return {
         header_name,
-        get: i => strings[i],
+        get: (i) => strings[i],
         rowIndices: index((a, b) => strings[a].localeCompare(strings[b])),
       };
     },
   };
 
   function index(compareFn: (a: number, b: number) => number) {
-    const permutation = Uint32Array.from({length: row_count}, (_, i) => i);
+    const permutation = Uint32Array.from({ length: row_count }, (_, i) => i);
     permutation.sort(compareFn);
     return (offset: number, limit: number, isAscending?: boolean) =>
       Array.from(
         Array(Math.max(0, Math.min(limit, row_count - offset))),
         isAscending === false
           ? (_, i) => permutation[row_count - offset - i]
-          : (_, i) => permutation[offset + i]
+          : (_, i) => permutation[offset + i],
       );
   }
 }
 
-function getColumns({headers, row_count, slice}: CsvTable): Column[] {
-  const columnBuilders: ColumnBuilder[] = headers.map(h =>
-    newColumnBuilder(h, row_count)
+function getColumns({ headers, row_count, slice }: CsvTable): Column[] {
+  const columnBuilders: ColumnBuilder[] = headers.map((h) =>
+    newColumnBuilder(h, row_count),
   );
   slice(0, row_count).forEach((row, i) =>
-    row.forEach((cell, j) => columnBuilders[j].add(cell, i))
+    row.forEach((cell, j) => columnBuilders[j].add(cell, i)),
   );
-  return columnBuilders.map(b => b.build());
+  return columnBuilders.map((b) => b.build());
 }
 
 export function asDataFrameElementSource(table: CsvTable): RowElementSource {
   const columns = getColumns(table);
-  const {row_count, headers} = table;
-  return {row_count, getBlock};
+  const { row_count, headers } = table;
+  return { row_count, getBlock };
 
   async function getBlock({
     orderColumn,
@@ -138,12 +138,12 @@ export function asDataFrameElementSource(table: CsvTable): RowElementSource {
         ? columns[orderColumn].rowIndices(offset, limit, isAscending)
         : Array.from(
             Array(Math.max(0, Math.min(limit, row_count - offset))),
-            (_, i) => offset + i
+            (_, i) => offset + i,
           );
     return indices.map(
-      i => html`<tr>
-        ${columns.map(c => html`<td>${c.get(i)}</td>`)}
-      </tr>`
+      (i) => html`<tr>
+        ${columns.map((c) => html`<td>${c.get(i)}</td>`)}
+      </tr>`,
     );
   }
 }

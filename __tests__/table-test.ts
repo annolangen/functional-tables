@@ -1,4 +1,4 @@
-import {render, html} from 'lit';
+import { render, html } from 'lit';
 import {
   asDataFrameElementSource,
   asQuickRowElementSource,
@@ -37,13 +37,13 @@ const renderPage = async () =>
         <p></p>
         ${await tableRenderer.render()}
       </div>`,
-    document.body
+    document.body,
   );
 tableRenderer = newTableRenderer(renderPage, classNames, 'test');
 
 window.onload = async () => {
   const table = await futureTable;
-  tableRenderer.setHeaders(table.headers.map(h => h.replace(/_/g, ' ')));
+  tableRenderer.setHeaders(table.headers.map((h) => h.replace(/_/g, ' ')));
   tableRenderer.setRows(asDataFrameElementSource(table));
   await renderPage(); // use estimates and Ref with undefined value
   renderPage();

@@ -23,7 +23,7 @@ export interface DataFrame extends Sliceable {
 export function makeDataFrame(
   size: number,
   header: string[],
-  data: (string | number)[][]
+  data: (string | number)[][],
 ): DataFrame {
   const numberish = (a: any) => typeof a === 'number' || a === '';
   const toNumber = (a: any): number =>
@@ -32,7 +32,7 @@ export function makeDataFrame(
     typeof a === 'string' ? a : new String(a);
   const reader = data.reduce<(typeof toNumber | typeof toString)[]>(
     (r, row) => row.map((c, i) => (numberish(c) ? r[i] : toString)),
-    Array.from(data[0], _ => toNumber)
+    Array.from(data[0], (_) => toNumber),
   );
   const column_metadata = reader.map(
     (r, i) =>
@@ -42,12 +42,12 @@ export function makeDataFrame(
           r === toNumber
             ? DataFrameColumnType.NUMERIC
             : DataFrameColumnType.STRING,
-      } as DataFrameColumn)
+      }) as DataFrameColumn,
   );
   const columns = reader.map((r, i) =>
     r === toNumber
-      ? Float64Array.from(data, row => r(row[i]))
-      : Array.from(data, row => r(row[i]) as string)
+      ? Float64Array.from(data, (row) => r(row[i]))
+      : Array.from(data, (row) => r(row[i]) as string),
   );
   const permutation = Array.from(data, (_, i) => i);
 
@@ -58,7 +58,7 @@ export function makeDataFrame(
     orderBy,
     slice: (offset: number, limit: number) =>
       Array.from(Array(Math.min(size - offset, limit)), (_, row) =>
-        columns.map(c => c[row + offset])
+        columns.map((c) => c[row + offset]),
       ),
   };
 
@@ -69,19 +69,19 @@ export function makeDataFrame(
       permutation.sort(
         o === Order.ASC
           ? (a: number, b: number) => col[a] - col[b]
-          : (a: number, b: number) => col[b] - col[a]
+          : (a: number, b: number) => col[b] - col[a],
       );
     } else {
       permutation.sort(
         o === Order.ASC
           ? (a: number, b: number) => col[a].localeCompare(col[b])
-          : (a: number, b: number) => col[b].localeCompare(col[a])
+          : (a: number, b: number) => col[b].localeCompare(col[a]),
       );
     }
     return {
       slice: (offset: number, limit: number) =>
         Array.from(Array(Math.min(size - offset, limit)), (_, row) =>
-          columns.map(col => col[permutation[row + offset]])
+          columns.map((col) => col[permutation[row + offset]]),
         ),
     };
   }

@@ -1,4 +1,4 @@
-import {supportsAdoptingStyleSheets} from 'lit';
+import { supportsAdoptingStyleSheets } from 'lit';
 
 export function debounce(f: Function, timeout = 50) {
   let timer: any;
@@ -19,19 +19,19 @@ interface RingItem<X, Y> {
 
 export function lruMemoize<X, Y>(
   limit: number,
-  f: (x: X) => Promise<Y>
+  f: (x: X) => Promise<Y>,
 ): (x: X) => Promise<Y> {
   var mru;
   const map = new Map<X, RingItem<X, Y>>();
   return async (x: X) => {
     if (!mru) {
-      mru = {key: x, value: await f(x)};
+      mru = { key: x, value: await f(x) };
       mru.next = mru.prev = mru;
       return mru.value;
     }
     const item = map.get(x);
     if (item) {
-      if (mru != item) {
+      if (mru !== item) {
         item.next.prev = item.prev;
         item.prev.next = item.next;
         item.next = mru;
@@ -47,7 +47,7 @@ export function lruMemoize<X, Y>(
       lru.prev.next = lru.next;
       map.delete(lru.key);
     }
-    mru = {next: mru, prev: mru.prev, key: x, value};
+    mru = { next: mru, prev: mru.prev, key: x, value };
     map.set(x, mru);
     return value;
   };
@@ -147,7 +147,7 @@ export function top<T>(
   a: T[],
   c: CompareFn<T>,
   b: number,
-  e: number
+  e: number,
 ) {
   if (k === 0 || e - b <= k) return;
   const [i, j] = partition(a, c, b, e);
