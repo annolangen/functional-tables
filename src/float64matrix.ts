@@ -50,6 +50,21 @@ export function multiply(a: Float64Matrix, b: Float64Matrix) {
   );
 }
 
+export function diagonalMultiply(
+  diag: Float64Array,
+  b: Float64Matrix,
+): Float64Matrix {
+  if (diag.length * b.cols != b.length) {
+    throw new TypeError(
+      `Dimension mismatch diagonal ${diag.length} != ${b.length / b.cols}`,
+    );
+  }
+  return matrix(
+    Float64Array.from(b, (v, i) => diag[Math.floor(i / b.cols)] * v),
+    b.cols,
+  );
+}
+
 export function transpose(a: Float64Matrix) {
   const cols = a.length / a.cols;
   return matrix(

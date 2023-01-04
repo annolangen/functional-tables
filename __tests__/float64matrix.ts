@@ -6,6 +6,7 @@ import {
   rowRowDot,
   multiply,
   transpose,
+  diagonalMultiply,
 } from '../src/float64matrix';
 
 describe('Float64Matrix', () => {
@@ -60,5 +61,11 @@ describe('Float64Matrix', () => {
         );
       }
     }
+  });
+
+  test('diagonalMultiply', () => {
+    expect([...diagonalMultiply(Float64Array.from([3, 4]), m)]).toEqual([
+      3, 6, 12, 16,
+    ]);
   });
 });
